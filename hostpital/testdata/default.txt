@@ -1,0 +1,14 @@
+# =============================================================================
+#  Block Comment
+# =============================================================================
+dummy1.example.com
+0.0.0.0
+127.0.0.1
+dummy2.example.com # in-line comment
+
+    dummy3.example.com
+
+# line comment
+
+dummy4.example.com
+0.0.0.0 127.0.0.1 dummy5.example.com      dummy6.example.com

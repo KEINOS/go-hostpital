@@ -1,0 +1,39 @@
+run:
+  tests: true
+  fast: true
+  build-tags:
+    - golangci
+  skip-dirs:
+    - .github
+    - .vscode
+  allow-parallel-runners: true
+
+output:
+  format: colored-line-number
+  sort-results: true
+
+linters:
+  enable-all: true
+  disable:
+  # Disable deprecated/abandoned linters
+  - scopelint
+  - deadcode
+  - nosnakecase
+  - exhaustivestruct
+  - varcheck
+  - golint
+  - ifshort
+  - interfacer
+  - maligned
+  # Disabled because of generics
+  - rowserrcheck
+  - sqlclosecheck
+  - structcheck
+  - wastedassign
+  # Disable due to mock private functions
+  - testpackage
+
+linters-settings:
+  cyclop:
+    # The maximal code complexity to report (Default: 10).
+    max-complexity: 15
