@@ -1,0 +1,8 @@
+# =============================================================================
+#  This is a comment block
+# =============================================================================
+
+# This is a comment line
+
+127.0.0.0 badboy2.example.jp badboy3.example.jp
+127.0.0.0 badboy1.example.jp # this is a inline comment
