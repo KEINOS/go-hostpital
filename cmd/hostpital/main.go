@@ -1,3 +1,4 @@
+//nolint:forbidigo // fmt.Println() is allowed in the main() function.
 package main
 
 import (
@@ -6,6 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 
 	"github.com/KEINOS/go-hostpital/hostpital"
 	"github.com/pkg/errors"
@@ -19,9 +22,12 @@ type Flags struct {
 	PathOutput string
 	FlagSet    *pflag.FlagSet
 	Parser     *hostpital.Parser
-	IsHelp     bool
+	ShowHelp   bool
+	ShowVerion bool
 }
 
+// IOFile is an interface to write and read to a file. It is a dependency injection
+// interface of os.File to ease testing.
 type IOFile interface {
 	Write(b []byte) (n int, err error)
 	Read(b []byte) (n int, err error)
@@ -31,7 +37,12 @@ type IOFile interface {
 // is taken from the executable name.
 const NameAppDefault = "hostpital"
 
+// version is the version of the application. It is set by the build script.
+var version string
+
 // Function variables to ease testing.
+//
+//nolint:gochecknoglobals // These are function variables to ease testing.
 var (
 	// osExit is a copy of os.Exit to ease testing.
 	osExit = os.Exit
@@ -46,21 +57,24 @@ var (
 // ----------------------------------------------------------------------------
 
 func main() {
-	flags := ParseFlags()
+	flags, err := ParseFlags()
+	ExitOnError(err)
 
-	flags.ShowHelpAndExitIfTrue(flags.IsHelp, "")
+	if flags.ShowVerion {
+		ShowVerApp() // Print version and exit
+	}
+
+	flags.ShowHelpAndExitIfTrue(flags.ShowHelp, "")
 	flags.ShowHelpAndExitIfTrue(len(flags.Args) == 0, "Error: No file path(s) given")
 
 	pathTmp, cleanup, err := MergeFiles(flags.Args)
 	ExitOnError(err)
 
-	defer cleanup()
+	defer func() {
+		ExitOnError(cleanup())
+	}()
 
-	// fmt.Println(dd.Dump(flags))
-	// fmt.Println(dd.Dump(pflag.Args()))
-	// fmt.Println("Temp path:", pathTmp)
-
-	var outFile *os.File = os.Stdout
+	outFile := os.Stdout
 
 	if flags.PathOutput != "" {
 		var err error
@@ -104,7 +118,7 @@ func appendFileTo(inputFile string, outFile IOFile) error {
 			}
 		}
 
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 
@@ -129,6 +143,20 @@ func ExitOnError(err error) {
 	}
 }
 
+func getVersion() string {
+	verBin := "(unknown)"
+
+	if version != "" {
+		verBin = version
+	} else if buildInfo, ok := debug.ReadBuildInfo(); ok {
+		verBin = buildInfo.Main.Version
+	}
+
+	return verBin
+}
+
+// MergeFiles merges the given files into a temporary file and returns the path
+// to the temporary file and a function to remove the temporary file.
 func MergeFiles(paths []string) (string, func() error, error) {
 	outFile, err := osCreateTemp(os.TempDir(), "hostpital-*")
 	if err != nil {
@@ -140,31 +168,44 @@ func MergeFiles(paths []string) (string, func() error, error) {
 	pathFileTmp := outFile.Name()
 
 	for _, pathFile := range paths {
-		if err := appendFileTo(pathFile, outFile); err != nil {
+		err := appendFileTo(pathFile, outFile)
+		if err != nil {
 			return "", nil, errors.Wrap(err, "failed to append the file")
 		}
 	}
 
-	return pathFileTmp, func() error { return os.Remove(pathFileTmp) }, nil
+	cleanup := func() error {
+		return errors.Wrap(os.Remove(pathFileTmp), "failed to remove the temporary file")
+	}
+
+	return pathFileTmp, cleanup, nil
 }
 
 // NameExec returns the name of the executable.
 func NameExec() string {
+	const delimiter = '.'
+
 	pathExec, err := osExecutable()
 	if err != nil && len(os.Args) > 0 {
 		pathExec = os.Args[0]
 	}
 
 	nameExec := filepath.Base(pathExec)
-	if nameExec == "." {
+	if nameExec == string(delimiter) {
 		nameExec = NameAppDefault
+	}
+
+	// trim "hostpital.test.exe" or "hostpital.test" to "hostpital"
+	foundIndex := strings.IndexByte(nameExec, delimiter)
+	if foundIndex != -1 {
+		return nameExec[:foundIndex]
 	}
 
 	return nameExec
 }
 
 // ParseFlags returns the Flags object with the parsed flags.
-func ParseFlags() *Flags {
+func ParseFlags() (*Flags, error) {
 	flags := new(Flags)
 
 	flags.FlagSet = pflag.NewFlagSet(NameExec(), pflag.ContinueOnError)
@@ -172,8 +213,8 @@ func ParseFlags() *Flags {
 
 	flags.FlagSet.BoolVarP(&flags.Parser.OmitEmptyLine, "emptyline", "e", flags.Parser.OmitEmptyLine,
 		"remove empty line(s) from the output")
-	flags.FlagSet.BoolVarP(&flags.IsHelp, "help", "h", flags.IsHelp, "show this message")
-	flags.FlagSet.StringVarP(&flags.Parser.UseIPAddress, "ip", "i", flags.Parser.UseIPAddress,
+	flags.FlagSet.BoolVarP(&flags.ShowHelp, "help", "h", flags.ShowHelp, "show this message")
+	flags.FlagSet.StringVarP(&flags.Parser.UseIPAddress, "use-ip", "i", flags.Parser.UseIPAddress,
 		"set IP address to be replaced (suitable for sinkhole)")
 	flags.FlagSet.StringVarP(&flags.PathOutput, "out", "o", flags.PathOutput,
 		"set output file path (default: stdout)")
@@ -183,34 +224,58 @@ func ParseFlags() *Flags {
 		"sort the output by the host name")
 	flags.FlagSet.BoolVarP(&flags.Parser.SortAsReverseDNS, "sortlabel", "l", flags.Parser.SortAsReverseDNS,
 		"sort the output by the reversed labels of the DNS hosts. e.g. 'com.example.www'")
-	flags.FlagSet.BoolVar(&flags.Parser.TrimComment, "no-comment", flags.Parser.TrimComment,
+	flags.FlagSet.BoolVar(&flags.Parser.TrimComment, "remove-comment", flags.Parser.TrimComment,
 		"remove comment lines from the output")
-	flags.FlagSet.BoolVar(&flags.Parser.TrimIPAddress, "no-ip", flags.Parser.TrimIPAddress,
+	flags.FlagSet.BoolVar(&flags.Parser.TrimIPAddress, "remove-ip-head", flags.Parser.TrimIPAddress,
 		"remove leading IP address in the line from the output")
-	flags.FlagSet.BoolVar(&flags.Parser.TrimLeadingSpace, "no-space-head", flags.Parser.TrimLeadingSpace,
+	flags.FlagSet.BoolVar(&flags.Parser.TrimLeadingSpace, "remove-space-head", flags.Parser.TrimLeadingSpace,
 		"remove leading space(s) from the output")
-	flags.FlagSet.BoolVar(&flags.Parser.TrimTrailingSpace, "no-space-tail", flags.Parser.TrimTrailingSpace,
+	flags.FlagSet.BoolVar(&flags.Parser.TrimTrailingSpace, "remove-space-tail", flags.Parser.TrimTrailingSpace,
 		"remove trailing space(s) from the output")
+	flags.FlagSet.BoolVarP(&flags.ShowVerion, "version", "v", flags.ShowVerion,
+		"prints the version of the application")
 
-	flags.FlagSet.Parse(os.Args[1:])
+	var err error
+
+	const minLenArg = 1
+
+	if len(os.Args) < minLenArg+1 {
+		err = errors.New("no arguments")
+	} else {
+		err = flags.FlagSet.Parse(os.Args[1:])
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse the flags")
+	}
 
 	flags.Args = flags.FlagSet.Args()
 
-	return flags
+	return flags, nil
+}
+
+// ShowVerApp prints the version of the application. This will exit the
+// application with status 0.
+func ShowVerApp() {
+	nameApp := NameExec()
+
+	fmt.Printf("%s %s\n", nameApp, getVersion())
+
+	osExit(0)
 }
 
 // -----------------------------------------------------------------------------
 //  Methods
 // -----------------------------------------------------------------------------
 
-// ShowHelpAndExit shows help and the msg if isTrue is true then exits with
+// ShowHelpAndExitIfTrue shows help and the msg if isTrue is true then exits with
 // status 1.
 func (f *Flags) ShowHelpAndExitIfTrue(isTrue bool, msg string) {
 	if !isTrue {
 		return
 	}
 
-	fmt.Fprintln(os.Stderr, NameExec()+" - Merge multiple hosts file(s) into one")
+	fmt.Fprintln(os.Stderr, NameExec()+" - Merge multiple hosts file(s) into one but parse and sort them.")
 
 	fmt.Fprintln(os.Stderr, "Usage: "+NameExec()+" [options] <file path(s)>")
 

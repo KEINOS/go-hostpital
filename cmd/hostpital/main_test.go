@@ -1,12 +1,13 @@
+//nolint:paralleltest // do not parallelize due to temporary changing global variables
 package main
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zenizh/go-capturer"
@@ -16,11 +17,39 @@ import (
 //  Golden Cases
 // ============================================================================
 
+func Test_main_golden_show_version(t *testing.T) {
+	// Backup and defer restore os.Args and osExit
+	defer backupAndRestore(t)()
+
+	// Mock os.Args
+	os.Args = []string{
+		t.Name(), // dummy app name
+		"-v",     // show version
+	}
+
+	capturerdStatus := 1 // it shuld turn to 0 if "-v" is set
+
+	// Mock osExit
+	osExit = func(code int) {
+		capturerdStatus = code
+
+		panic("forced panic") // force panic instead of os.Exit
+	}
+
+	out := capturer.CaptureOutput(func() {
+		require.Panics(t, func() { main() })
+	})
+
+	require.Equal(t, 0, capturerdStatus, "it shuld exit with 0 in case of version flag")
+	require.Equal(t, "hostpital (devel)\n", out,
+		"it should contain the app name without extension and with it's version")
+}
+
 func Test_main_golden_stdout(t *testing.T) {
 	// Backup and defer restore os.Args and osExit
 	defer backupAndRestore(t)()
 
-	pathDirFile := "testdata"
+	const pathDirFile = "testdata"
 
 	listFiles := []string{
 		filepath.Join(pathDirFile, "host1.txt"),
@@ -45,6 +74,8 @@ func Test_main_golden_stdout(t *testing.T) {
 		assert.NotPanics(t, func() { main() })
 	})
 
+	t.Log(out) // log in case of panic
+
 	require.Contains(t, out, heredoc.Doc(`
 		0.0.0.0 badboy1.example.com
 		0.0.0.0 badboy2.example.com badboy3.example.com
@@ -57,9 +88,9 @@ func Test_main_golden_file_out(t *testing.T) {
 	// Backup and defer restore os.Args and osExit
 	defer backupAndRestore(t)()
 
-	pathDirFile := "testdata"
-
 	pathFileOut := filepath.Join(t.TempDir(), "out.txt")
+
+	const pathDirFile = "testdata"
 
 	listFiles := []string{
 		filepath.Join(pathDirFile, "host1.txt"),
@@ -77,7 +108,8 @@ func Test_main_golden_file_out(t *testing.T) {
 
 	// Mock osExit
 	osExit = func(code int) {
-		panic("os.Exit called") // force panic instead of os.Exit
+		// force to panic instead of os.Exit on error
+		panic("unexpected os.Exit was called")
 	}
 
 	capturedOut := capturer.CaptureOutput(func() {
@@ -117,7 +149,6 @@ func Test_appendFileTo_input_is_empty(t *testing.T) {
 
 func Test_appendFileTo_outfile_fails_to_write(t *testing.T) {
 	pathFile := filepath.Join("testdata", "host1.txt")
-
 	dummyFile := new(DummyFile) // dummy implementation to force error
 
 	err := appendFileTo(pathFile, dummyFile)
@@ -140,11 +171,13 @@ func TestFlags_ShowHelpAndExitIfTrue(t *testing.T) {
 	// Mock osExit
 	osExit = func(code int) {
 		capturedCode = code
+
 		panic("os.Exit called") // force panic instead of os.Exit
 	}
 
 	out := capturer.CaptureOutput(func() {
-		flags := ParseFlags()
+		flags, err := ParseFlags()
+		require.NoError(t, err)
 
 		assert.PanicsWithValue(t, "os.Exit called", func() { flags.ShowHelpAndExitIfTrue(true, "foced error") })
 	})
@@ -162,7 +195,6 @@ func Test_main_out_file_is_dir(t *testing.T) {
 	defer backupAndRestore(t)()
 
 	pathDirFile := "testdata"
-
 	pathFileOut := t.TempDir()
 
 	listFiles := []string{
@@ -206,6 +238,7 @@ func Test_main_show_help(t *testing.T) {
 	// Mock osExit
 	osExit = func(code int) {
 		capturedCode = code // capture
+
 		panic("forced panic. os.Exit called")
 	}
 
@@ -214,7 +247,7 @@ func Test_main_show_help(t *testing.T) {
 	})
 
 	require.Equal(t, 1, capturedCode, "exit code should be 1 on error")
-	assert.Contains(t, outStderr, "Merge multiple hosts file(s) into one",
+	assert.Contains(t, outStderr, "Merge multiple hosts file(s) into one but parse and sort them.",
 		"help message should be shown on stderr")
 	assert.Contains(t, outStderr, "Usage:",
 		"help message should contain usage")
@@ -223,8 +256,35 @@ func Test_main_show_help(t *testing.T) {
 }
 
 // ----------------------------------------------------------------------------
-//  MergeFiles()
+//	MergeFiles()
 // ----------------------------------------------------------------------------
+
+func TestMergeFiles_golden(t *testing.T) {
+	pathFile1 := filepath.Join("testdata", "host1.txt")
+	require.FileExists(t, pathFile1, "test data file1 should exist")
+
+	pathFile2 := filepath.Join("testdata", "host2.txt")
+	require.FileExists(t, pathFile2, "test data file1 should exist")
+
+	pathTmp, fnTest, err := MergeFiles([]string{pathFile1, pathFile2})
+
+	require.NoError(t, err, "it should not return error on success")
+
+	require.FileExists(t, pathTmp, "it should create a temporary file")
+
+	// Read the file
+	content, err := os.ReadFile(pathTmp)
+	require.NoError(t, err, "it should read the file")
+
+	assert.Contains(t, string(content), "This is a comment block for host1.txt", "it should contain the content")
+	assert.Contains(t, string(content), "This is a comment block for host2.txt", "it should contain the content")
+
+	// Cleanup check
+	err = fnTest()
+	require.NoError(t, err, "it should not return error on cleanup")
+
+	require.NoFileExists(t, pathTmp, "cleanup function shuld remove the temporary file")
+}
 
 func TestMergeFiles_fail_create_temp_file(t *testing.T) {
 	// Backup and defer restore os.Args and function variables
@@ -276,12 +336,14 @@ func TestNameExec(t *testing.T) {
 	defer backupAndRestore(t)()
 
 	beforeMock := NameExec()
+	t.Log("before mock:", beforeMock)
 
 	// Mock osExecutable
 	osExecutable = func() (string, error) {
 		return "", errors.New("forced error")
 	}
 
+	// Use os.Args[0] as app name
 	{
 		expectAfter := "dummy-app-name"
 
@@ -295,6 +357,8 @@ func TestNameExec(t *testing.T) {
 		require.NotEqual(t, beforeMock, actualAfter)
 		require.Equal(t, expectAfter, actualAfter, "if os.Executable() fails, it should return os.Args[0]")
 	}
+
+	// Use pre-defined name as the app name
 	{
 		expectAfter := NameAppDefault
 
@@ -303,9 +367,66 @@ func TestNameExec(t *testing.T) {
 
 		actualAfter := NameExec()
 
-		require.NotEqual(t, beforeMock, actualAfter)
 		require.Equal(t, expectAfter, actualAfter,
 			"if os.Executable() fails and os.Args is empty, it should return the default app name")
+	}
+}
+
+// ----------------------------------------------------------------------------
+//  ParseFlags()
+// ----------------------------------------------------------------------------
+
+func TestParseFlags(t *testing.T) {
+	// Backup and defer restore os.Args and function variables
+	defer backupAndRestore(t)()
+
+	// Mock os.Args
+	os.Args = []string{}
+
+	flags, err := ParseFlags()
+
+	require.Error(t, err, "it should return error on empty os.Args")
+	assert.Contains(t, err.Error(), "failed to parse the flags", "it should return error on empty os.Args")
+	assert.Contains(t, err.Error(), "no arguments", "the error should contain the reason")
+	assert.Nil(t, flags, "it should return nil flags on error")
+}
+
+// ----------------------------------------------------------------------------
+//  ShowVerApp
+// ----------------------------------------------------------------------------
+
+func TestShowVerApp(t *testing.T) {
+	// Backup and defer restore os.Args and function variables
+	defer backupAndRestore(t)()
+
+	capturedStatus := 1 // it shuld turn to 0 on success
+
+	// Mock osExit
+	osExit = func(code int) {
+		capturedStatus = code
+	}
+
+	{
+		out := capturer.CaptureStdout(func() {
+			ShowVerApp()
+		})
+
+		require.Equal(t, 0, capturedStatus, "it should exit with status 0")
+		assert.Contains(t, out, "hostpital (devel)",
+			"it should contain the app name with no extension with the version")
+	}
+
+	// version is set (via build args)
+	{
+		version = "v1.2.3456789" // pretend that version is set via build args
+
+		out := capturer.CaptureStdout(func() {
+			ShowVerApp()
+		})
+
+		expect := "hostpital v1.2.3456789"
+
+		assert.Contains(t, out, expect, "if version variable is set, it should use that version")
 	}
 }
 
@@ -321,12 +442,12 @@ func TestNameExec(t *testing.T) {
 type DummyFile struct{}
 
 // Read implements main.IOFile.Read interface to return dummy error.
-func (d *DummyFile) Read(p []byte) (n int, err error) {
+func (d *DummyFile) Read(p []byte) (int, error) {
 	return 0, errors.New("dummy error to read")
 }
 
 // Write implements main.IOFile.Write interface to return dummy error.
-func (d *DummyFile) Write(p []byte) (n int, err error) {
+func (d *DummyFile) Write(p []byte) (int, error) {
 	return 0, errors.New("dummy error to write")
 }
 
@@ -348,11 +469,13 @@ func backupAndRestore(t *testing.T) func() {
 	oldOsExit := osExit
 	oldOsExecutable := osExecutable
 	oldOsCreateTemp := osCreateTemp
+	oldVersion := version
 
 	return func() {
 		os.Args = oldArgs
 		osExit = oldOsExit
 		osExecutable = oldOsExecutable
 		osCreateTemp = oldOsCreateTemp
+		version = oldVersion
 	}
 }
