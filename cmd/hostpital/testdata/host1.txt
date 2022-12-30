@@ -1,0 +1,8 @@
+# =============================================================================
+#  This is a comment block for host1.txt
+# =============================================================================
+
+# This is a comment line
+
+127.0.0.0 badboy1.example.com # this is a inline comment
+127.0.0.0 badboy2.example.com badboy3.example.com

@@ -18,7 +18,12 @@ const (
 	Cutset = "\t\n\v\f\r "
 )
 
-// osOpen is a copy of os.Open to ease testing by mocking/monkey patching.
+// Function variables for testing.
 //
 //nolint:gochecknoglobals // Allow global var for testing
-var osOpen = os.Open
+var (
+	// osOpen is a copy of os.Open to ease testing by mocking/monkey patching.
+	osOpen = os.Open
+	// osLstat is a copy of os.Lstat to ease testing.
+	osLstat = os.Lstat
+)

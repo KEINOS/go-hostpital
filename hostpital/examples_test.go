@@ -9,11 +9,37 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/Code-Hex/dd"
 	"github.com/KEINOS/go-hostpital/hostpital"
 )
+
+// ----------------------------------------------------------------------------
+//  FileExists()
+// ----------------------------------------------------------------------------
+
+func ExampleFileExists() {
+	// FileExists returns true if the file exists.
+	if ok := hostpital.FileExists("examples_test.go"); ok {
+		fmt.Println("given path exists and is a file")
+	}
+
+	// FileExists returns false if the path is a directory even if the path exists.
+	if ok := hostpital.FileExists(os.TempDir()); !ok {
+		fmt.Println("given path is a directory")
+	}
+
+	// FileExists returns false if the path does not exist.
+	if ok := hostpital.FileExists("unknown.txt"); !ok {
+		fmt.Println("given path does not exist")
+	}
+	// Output:
+	// given path exists and is a file
+	// given path is a directory
+	// given path does not exist
+}
 
 // ----------------------------------------------------------------------------
 //  IsCommentLine()
