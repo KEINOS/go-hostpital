@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD001 MD041 MD050 MD033 -->
 [![go1.18+](https://img.shields.io/badge/Go-1.18--latest-blue?logo=go)](https://github.com/KEINOS/go-hostpital/blob/main/.github/workflows/unit-tests.yml "Supported versions")
-[![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-hostpital.svg)](https://pkg.go.dev/github.com/KEINOS/go-hostpital#section-documentation "Read generated documentation of the app")
+[![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-hostpital.svg)](https://pkg.go.dev/github.com/KEINOS/go-hostpital/hostpital#section-documentation "Read generated documentation of the package")
 
 # go-hostpital
 
@@ -17,7 +17,7 @@ go get "github.com/KEINOS/go-hostpital"
 ```go
 import "github.com/KEINOS/go-hostpital/hostpital"
 
-func ExampleValidator_ValidateFile() {
+func ExampleValidator() {
     // Validator with default settings
     validator := hostpital.NewValidator()
 
@@ -103,6 +103,7 @@ func Example() {
 ```
 
 - [View more examples](https://pkg.go.dev/github.com/KEINOS/go-hostpital/hostpital#pkg-examples) @ pkg.go.dev
+- For command line example usage, see [./cmd/hostpital](./cmd/hostpital)
 
 ## Statuses
 

@@ -1,5 +1,15 @@
 /*
 Package hostpital provides functions to assist in the maintenance of hosts files.
+
+## Usage
+
+```go
+import "github.com/KEINOS/go-hostpital/hostpital"
+```
+
+## Example Usage
+
+- [Package examples](https://pkg.go.dev/github.com/KEINOS/go-hostpital/hostpital#pkg-examples) | godoc @ pkg.go.dev
 */
 package hostpital
 
