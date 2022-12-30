@@ -54,14 +54,15 @@ func ExampleFindFile() {
 		log.Fatalf("failed to find files: %v", err)
 	}
 
-	fmt.Println(dd.Dump(foundFiles))
+	for _, file := range foundFiles {
+		fmt.Println(filepath.ToSlash(file))
+	}
+
 	// Output:
-	// []string{
-	//   "testdata/search_me/dir1/hosts",
-	//   "testdata/search_me/dir2/hosts.txt",
-	//   "testdata/search_me/dir2/subdir2/hosts",
-	//   "testdata/search_me/hosts/hosts",
-	// }
+	// testdata/search_me/dir1/hosts
+	// testdata/search_me/dir2/hosts.txt
+	// testdata/search_me/dir2/subdir2/hosts
+	// testdata/search_me/hosts/hosts
 }
 
 // ----------------------------------------------------------------------------

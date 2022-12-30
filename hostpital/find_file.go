@@ -8,7 +8,8 @@ import (
 )
 
 // FindFile returns a list of file paths found under the given directory.
-// It will not include directories even if it matches.
+// It will not include directories even if it matches. If no files are found,
+// it will return an fs.ErrNotExist error.
 //
 // e.g. FindFile("hosts*", "/home/user") will return:
 //
@@ -35,6 +36,10 @@ func FindFile(patternFile, pathDirSearch string) ([]string, error) {
 
 		return nil
 	})
+
+	if err == nil && len(findList) == 0 {
+		err = fs.ErrNotExist
+	}
 
 	return findList, errors.Wrap(err, "failed to search directory")
 }

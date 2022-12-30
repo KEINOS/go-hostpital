@@ -17,6 +17,54 @@ import (
 //  Golden Cases
 // ============================================================================
 
+func Test_main_golden_file_out(t *testing.T) {
+	// Backup and defer restore os.Args and osExit
+	defer backupAndRestore(t)()
+
+	pathFileOut := filepath.Join(t.TempDir(), "out.txt")
+
+	const pathDirFile = "testdata"
+
+	listFiles := []string{
+		filepath.Join(pathDirFile, "host1.txt"),
+		filepath.Join(pathDirFile, "host2.txt"),
+	}
+
+	// Mock os.Args
+	os.Args = []string{
+		t.Name(),          // dummy app name
+		"-s",              // sort by host name
+		"-o", pathFileOut, // output file
+		listFiles[0], // target file1
+		listFiles[1], // target file2
+	}
+
+	// Mock osExit
+	osExit = func(code int) {
+		// force to panic instead of os.Exit on error
+		panic("unexpected os.Exit was called")
+	}
+
+	capturedOut := capturer.CaptureOutput(func() {
+		assert.NotPanics(t, func() { main() })
+	})
+
+	t.Log(capturedOut)
+
+	require.FileExists(t, pathFileOut)
+
+	outFile, err := os.ReadFile(pathFileOut)
+	require.NoError(t, err)
+
+	require.Contains(t, capturedOut, "Output file:")
+	require.Contains(t, string(outFile), heredoc.Doc(`
+		badboy1.example.com
+		badboy1.example.jp
+		badboy2.example.com badboy3.example.com
+		badboy2.example.jp badboy3.example.jp
+	`))
+}
+
 func Test_main_golden_show_version(t *testing.T) {
 	// Backup and defer restore os.Args and osExit
 	defer backupAndRestore(t)()
@@ -84,51 +132,36 @@ func Test_main_golden_stdout(t *testing.T) {
 	`))
 }
 
-func Test_main_golden_file_out(t *testing.T) {
+func Test_main_golden_search_dir(t *testing.T) {
 	// Backup and defer restore os.Args and osExit
 	defer backupAndRestore(t)()
 
-	pathFileOut := filepath.Join(t.TempDir(), "out.txt")
-
 	const pathDirFile = "testdata"
-
-	listFiles := []string{
-		filepath.Join(pathDirFile, "host1.txt"),
-		filepath.Join(pathDirFile, "host2.txt"),
-	}
 
 	// Mock os.Args
 	os.Args = []string{
-		t.Name(),          // dummy app name
-		"-s",              // sort by host name
-		"-o", pathFileOut, // output file
-		listFiles[0], // target file1
-		listFiles[1], // target file2
+		t.Name(),    // dummy app name
+		"-d",        // sort by reversed label
+		pathDirFile, // search directory
+		"host*",     // search pattern (default is "hosts*")
 	}
 
 	// Mock osExit
 	osExit = func(code int) {
-		// force to panic instead of os.Exit on error
-		panic("unexpected os.Exit was called")
+		panic("os.Exit called") // force panic instead of os.Exit
 	}
 
-	capturedOut := capturer.CaptureOutput(func() {
+	out := capturer.CaptureOutput(func() {
 		assert.NotPanics(t, func() { main() })
 	})
 
-	t.Log(capturedOut)
+	t.Log("Captured output", out) // log in case of panic
 
-	require.FileExists(t, pathFileOut)
-
-	outFile, err := os.ReadFile(pathFileOut)
-	require.NoError(t, err)
-
-	require.Contains(t, capturedOut, "Output file:")
-	require.Contains(t, string(outFile), heredoc.Doc(`
+	require.Contains(t, out, heredoc.Doc(`
 		badboy1.example.com
-		badboy1.example.jp
 		badboy2.example.com badboy3.example.com
 		badboy2.example.jp badboy3.example.jp
+		badboy1.example.jp
 	`))
 }
 
@@ -190,6 +223,32 @@ func TestFlags_ShowHelpAndExitIfTrue(t *testing.T) {
 //  main()
 // ----------------------------------------------------------------------------
 
+func Test_main_no_match_in_serch_dir(t *testing.T) {
+	// Backup and defer restore os.Args and function variables
+	defer backupAndRestore(t)()
+
+	pathDirFile := "testdata"
+
+	// Mock os.Args
+	os.Args = []string{
+		t.Name(),    // dummy app name
+		"-d",        // sort by host name
+		pathDirFile, // search directory
+	}
+
+	// Mock osExit
+	osExit = func(code int) {
+		panic("os.Exit called") // force panic instead of os.Exit
+	}
+
+	capturedOut := capturer.CaptureOutput(func() {
+		assert.Panics(t, func() { main() })
+	})
+
+	require.Contains(t, capturedOut, "failed to search directory")
+	require.Contains(t, capturedOut, "file does not exist")
+}
+
 func Test_main_out_file_is_dir(t *testing.T) {
 	// Backup and defer restore os.Args and function variables
 	defer backupAndRestore(t)()
@@ -242,11 +301,12 @@ func Test_main_show_help(t *testing.T) {
 		panic("forced panic. os.Exit called")
 	}
 
-	outStderr := capturer.CaptureStderr(func() {
+	outStderr := capturer.CaptureStdout(func() {
 		assert.Panics(t, func() { main() }, "it should panic on os.Exit call")
 	})
 
-	require.Equal(t, 1, capturedCode, "exit code should be 1 on error")
+	require.Equal(t, 0, capturedCode, "exit code should be 0 on show help")
+
 	assert.Contains(t, outStderr, "Merge multiple hosts file(s) into one but parse and sort them.",
 		"help message should be shown on stderr")
 	assert.Contains(t, outStderr, "Usage:",
