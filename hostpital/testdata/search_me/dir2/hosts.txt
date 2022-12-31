@@ -1,0 +1,2 @@
+# Hosts file of hostpital/testdata/search_me/dir2/hosts.txt
+127.0.0.1 dir2.example.com
