@@ -7,7 +7,7 @@ require (
 	github.com/Code-Hex/dd v1.1.0
 	github.com/KEINOS/go-countline v1.1.0
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.14.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
