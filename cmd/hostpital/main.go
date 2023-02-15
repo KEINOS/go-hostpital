@@ -89,31 +89,64 @@ func main() {
 		ExitOnError(err)
 	}
 
-	pathTmp, cleanup, err := MergeFiles(listFiles)
-	ExitOnError(err)
-
-	defer func() {
-		ExitOnError(cleanup())
-	}()
-
-	outFile := os.Stdout
+	showStdOut := false
+	pathFileOut := flags.PathOutput
 
 	if flags.PathOutput != "" {
-		var err error
-
-		outFile, err = os.Create(flags.PathOutput)
-		if err != nil {
-			ExitOnError(errors.Wrap(err, "failed to create the output file"))
-		}
-
 		defer func() {
-			if err := outFile.Close(); err == nil {
-				fmt.Println("Output file:", flags.PathOutput)
-			}
+			fmt.Println("Output file:", pathFileOut)
 		}()
 	}
 
-	ExitOnError(flags.Parser.ParseFileTo(pathTmp, outFile))
+	if flags.PathOutput == "" {
+		showStdOut = true
+
+		ptrOut, err := osCreateTemp(os.TempDir(), "hostpital-*")
+		ExitOnError(err)
+
+		pathFileOut = ptrOut.Name()
+		ExitOnError(ptrOut.Close())
+
+		defer func() {
+			ExitOnError(os.Remove(pathFileOut))
+		}()
+	}
+
+	err = hostpital.MergeSortFiles(listFiles, flags.Parser, pathFileOut)
+	ExitOnError(err)
+
+	if showStdOut {
+		byteData, err := os.ReadFile(pathFileOut)
+		ExitOnError(err)
+
+		fmt.Println(string(byteData))
+	}
+
+	// pathTmp, cleanup, err := MergeFiles(listFiles)
+	// ExitOnError(err)
+
+	// defer func() {
+	// 	ExitOnError(cleanup())
+	// }()
+
+	// outFile := os.Stdout
+
+	// if flags.PathOutput != "" {
+	// 	var err error
+
+	// 	outFile, err = os.Create(flags.PathOutput)
+	// 	if err != nil {
+	// 		ExitOnError(errors.Wrap(err, "failed to create the output file"))
+	// 	}
+
+	// 	defer func() {
+	// 		if err := outFile.Close(); err == nil {
+	// 			fmt.Println("Output file:", flags.PathOutput)
+	// 		}
+	// 	}()
+	// }
+
+	// ExitOnError(flags.Parser.ParseFileTo(pathTmp, outFile))
 }
 
 // -----------------------------------------------------------------------------
@@ -148,7 +181,8 @@ func appendFileTo(inputFile string, outFile IOFile) error {
 	}
 }
 
-// ExitOnError prints the error message to the STDERR and exits the program.
+// ExitOnError prints the error message to the STDERR and exits the program if
+// the error is not nil.
 //
 // To mock the behavior of os.Exit() for testing, override the osExit function
 // variable.

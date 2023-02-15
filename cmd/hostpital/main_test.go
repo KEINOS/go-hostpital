@@ -23,11 +23,9 @@ func Test_main_golden_file_out(t *testing.T) {
 
 	pathFileOut := filepath.Join(t.TempDir(), "out.txt")
 
-	const pathDirFile = "testdata"
-
 	listFiles := []string{
-		filepath.Join(pathDirFile, "host1.txt"),
-		filepath.Join(pathDirFile, "host2.txt"),
+		filepath.Join("testdata", "host1.txt"),
+		filepath.Join("testdata", "host2.txt"),
 	}
 
 	// Mock os.Args
@@ -140,10 +138,10 @@ func Test_main_golden_search_dir(t *testing.T) {
 
 	// Mock os.Args
 	os.Args = []string{
-		t.Name(),    // dummy app name
-		"-d",        // sort by reversed label
-		pathDirFile, // search directory
-		"host*",     // search pattern (default is "hosts*")
+		t.Name(),          // dummy app name
+		"-l",              // sort by reversed label
+		"-d", pathDirFile, // search directory
+		"host*", // search pattern (default is "hosts*")
 	}
 
 	// Mock osExit
