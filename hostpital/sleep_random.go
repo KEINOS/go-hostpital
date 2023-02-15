@@ -14,12 +14,11 @@ func SleepRandom(secMax int) {
 		secMax = 1
 	}
 
-	rand.Seed(time.Now().UnixNano())
+	//nolint:gosec // not cryptographically secure random but enough for our use case.
+	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	// In case of secMax = 1, we get a random number between 0 and 999.
-	//
-	//nolint:gosec // not cryptographically secure random but enough for our use case.
-	sec := rand.Intn(secMax * mil)
+	sec := randGen.Intn(secMax * mil)
 
 	time.Sleep(time.Millisecond * time.Duration(sec))
 }
