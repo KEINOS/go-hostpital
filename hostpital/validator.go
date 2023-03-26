@@ -96,11 +96,15 @@ func (v *Validator) ValidateFile(pathFile string) bool {
 	defer v.mutx.Unlock()
 
 	osFile, err := os.Open(pathFile)
-	if err != nil || !IsExistingFile(pathFile) {
+	if err != nil {
 		return false
 	}
 
 	defer osFile.Close()
+
+	if !IsExistingFile(pathFile) {
+		return false
+	}
 
 	scanner := bufio.NewScanner(osFile)
 
