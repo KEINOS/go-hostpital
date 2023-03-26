@@ -40,7 +40,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
-    entrypoint: golangci-lint run
+    entrypoint: [ "/usr/bin/golangci-lint",  "run", "--verbose" ]
   # Run code coverage
   cover:
     build:
