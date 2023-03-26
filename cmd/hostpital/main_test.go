@@ -502,12 +502,12 @@ func TestShowVerApp(t *testing.T) {
 type DummyFile struct{}
 
 // Read implements main.IOFile.Read interface to return dummy error.
-func (d *DummyFile) Read(p []byte) (int, error) {
+func (d *DummyFile) Read(_ []byte) (int, error) {
 	return 0, errors.New("dummy error to read")
 }
 
 // Write implements main.IOFile.Write interface to return dummy error.
-func (d *DummyFile) Write(p []byte) (int, error) {
+func (d *DummyFile) Write(_ []byte) (int, error) {
 	return 0, errors.New("dummy error to write")
 }
 
