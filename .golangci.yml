@@ -32,6 +32,8 @@ linters:
   - wastedassign
   # Disable due to mock private functions
   - testpackage
+  # Disable due to use of non-standard packages
+  - depguard
 
 linters-settings:
   cyclop:
