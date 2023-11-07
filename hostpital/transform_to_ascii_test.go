@@ -35,7 +35,6 @@ func TestTransformToASCII(t *testing.T) {
 			require.Empty(t, out, "test #%d failed. output should be empty on error. got %s", index+1, out)
 		} else {
 			require.NoError(t, err, "test #%d failed. input '%s' should not error", index+1, test.input)
-			require.Nil(t, err, "test #%d failed. input '%s' should not error. got %v", index+1, test.input, err)
 			require.Contains(t, out, test.wantOut, "test #%d failed. it did not contain the expected output", index+1)
 		}
 	}

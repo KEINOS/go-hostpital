@@ -102,12 +102,12 @@ func ExampleIsCompatibleIDNA2008() {
 		{input: "xn--fa-hia.com", want: true},    // IDNA2008 compatible and is ASCII/punycoded
 		{input: "xn--gpher-jua.com", want: true}, // same as above
 		// Wrong cases
-		{input: "27--m01police.55fifayellow.com"}, // Double hyphen with mal-formed punycode is not allowed
-		{input: "my_host1.example.com"},           // Host contains under score
-		{input: "faß.com"},                        // Must be in punycode/ASCII. Use TransformToASCII()
-		{input: "www.аррӏе.com"},                  // Same as above
-		{input: "*.faß.com"},                      // Wildcard is not allowed. Use IsCompatibleRFC6125Pattern()
-		{input: ".example.com"},                   // Must not start with a dot
+		{input: "27--m01police.55fifayellow.com", want: false}, // Double hyphen with mal-formed punycode is not allowed
+		{input: "my_host1.example.com", want: false},           // Host contains under score
+		{input: "faß.com", want: false},                        // Must be in punycode/ASCII. Use TransformToASCII()
+		{input: "www.аррӏе.com", want: false},                  // Same as above
+		{input: "*.faß.com", want: false},                      // Wildcard is not allowed. Use IsCompatibleRFC6125Pattern()
+		{input: ".example.com", want: false},                   // Must not start with a dot
 	} {
 		// True if host name is ready for registration. False if it is a raw
 		// punycode or not IDNA2008 compatible.
@@ -149,17 +149,17 @@ func ExampleIsCompatibleRFC6125() {
 		{host: "exa_mple.com", want: true},
 		{host: "127.0.0.1", want: true},
 		// Wrong cases
-		{host: "0.0.0.0 example.com"}, // no space allowed
-		{host: "-eXample123-.com"},
-		{host: ""},
-		{host: "."},
-		{host: "example..com"},
-		{host: ".example.com"},
-		{host: "*.example.com."},
-		{host: "*foo.example.com"},
-		{host: "foo.*.example.com"},
-		{host: "foo,bar"},
-		{host: "project-dev:us-central1:main"},
+		{host: "0.0.0.0 example.com", want: false}, // no space allowed
+		{host: "-eXample123-.com", want: false},
+		{host: "", want: false},
+		{host: ".", want: false},
+		{host: "example..com", want: false},
+		{host: ".example.com", want: false},
+		{host: "*.example.com.", want: false},
+		{host: "*foo.example.com", want: false},
+		{host: "foo.*.example.com", want: false},
+		{host: "foo,bar", want: false},
+		{host: "project-dev:us-central1:main", want: false},
 	} {
 		got := hostpital.IsCompatibleRFC6125(test.host)
 
@@ -185,18 +185,18 @@ func ExampleIsCompatibleRFC6125Pattern() {
 		{host: "127.0.0.1", want: true},
 		{host: "*.example.com", want: true}, // wildcard is allowed
 		// Wrong cases
-		{host: "0.0.0.0 example.com"}, // no space allowed
-		{host: "example.com."},        // dot at the end is not allowed
-		{host: "-eXample123-.com"},
-		{host: ""},
-		{host: "."},
-		{host: "example..com"},
-		{host: ".example.com"},
-		{host: "*.example.com."},
-		{host: "*foo.example.com"},
-		{host: "foo.*.example.com"},
-		{host: "foo,bar"},
-		{host: "project-dev:us-central1:main"},
+		{host: "0.0.0.0 example.com", want: false}, // no space allowed
+		{host: "example.com.", want: false},        // dot at the end is not allowed
+		{host: "-eXample123-.com", want: false},
+		{host: "", want: false},
+		{host: ".", want: false},
+		{host: "example..com", want: false},
+		{host: ".example.com", want: false},
+		{host: "*.example.com.", want: false},
+		{host: "*foo.example.com", want: false},
+		{host: "foo.*.example.com", want: false},
+		{host: "foo,bar", want: false},
+		{host: "project-dev:us-central1:main", want: false},
 	} {
 		got := hostpital.IsCompatibleRFC6125Pattern(test.host)
 
@@ -250,7 +250,7 @@ func ExampleIsIPAddress() {
 		{input: "0.0.0.0", want: true},
 		{input: "::", want: true},
 		// Wrong cases
-		{input: "0.0.0.0.0"},
+		{input: "0.0.0.0.0", want: false},
 	} {
 		// Detects IP address (IPV4 and IPV6)
 		got := hostpital.IsIPAddress(test.input)
