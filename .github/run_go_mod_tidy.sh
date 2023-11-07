@@ -33,18 +33,8 @@ cp go.sum go.sum.bak || {
 print_ok 'go.mod.bak and go.sum.bak created'
 
 # -----------------------------------------------------------------------------
-echo '* Updating modules ...'
-go get -u ./... || {
-    echo 'error: failed to update modules'
-    echo '!!: Plese fallback to the original files'
-    exit 1
-}
-
-print_ok 'modules updated'
-
-# -----------------------------------------------------------------------------
 echo '* Run go tidy ...'
-go mod tidy || {
+go mod tidy -go=1.18|| {
     echo 'error: failed to run go mod tidy'
     echo '!!: Plese fallback to the original files'
     exit 1

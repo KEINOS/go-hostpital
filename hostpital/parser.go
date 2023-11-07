@@ -240,8 +240,8 @@ func (p *Parser) sortAsReverseDNS(lines []string) []string {
 	}
 
 	// Sort as reversed DNS hosts.
-	slices.SortFunc(lines, func(a string, b string) bool {
-		return strings.Compare(ReverseDNS(a), ReverseDNS(b)) < 0
+	slices.SortFunc(lines, func(a string, b string) int {
+		return strings.Compare(ReverseDNS(a), ReverseDNS(b))
 	})
 
 	return lines

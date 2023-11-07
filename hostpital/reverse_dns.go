@@ -12,8 +12,8 @@ import (
 func ReverseDNS(hostName string) string {
 	chunks := strings.Split(hostName, string(DelimDNS))
 
-	slices.SortFunc(chunks, func(a string, b string) bool {
-		return true // always a < b
+	slices.SortFunc(chunks, func(a string, b string) int {
+		return -1 // always a < b
 	})
 
 	return strings.Join(chunks, string(DelimDNS))
