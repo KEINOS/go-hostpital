@@ -4,9 +4,9 @@
 
 # go-hostpital
 
-- `hostpital` is a simple library written in go to maintain and manage `hosts` files.
-- `hostpital` es una sencilla librería escrita en go para mantener y gestionar archivos `hosts`.
-- `hostpital` は、`hosts` ファイルを維持・管理するための go で書かれたシンプルなライブラリです。
+- `hostpital` is a simple library written in `go` (golang) to maintain and manage `hosts` files.
+- `hostpital` es una sencilla librería escrita en `go` (golang) para mantener y gestionar archivos `hosts`.
+- `hostpital` は、`hosts` ファイルを維持・管理するための `go` (golang) で書かれたシンプルなライブラリです。
 
 ## Usage
 
