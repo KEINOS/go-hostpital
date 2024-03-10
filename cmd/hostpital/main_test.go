@@ -39,9 +39,8 @@ func Test_main_golden_file_out(t *testing.T) {
 		listFiles[1], // target file2
 	}
 
-	// Mock osExit
-	osExit = func(code int) {
-		// force to panic instead of os.Exit on error
+	// Mock osExit to force to panic instead of os.Exit
+	osExit = func(_ int) {
 		panic("unexpected os.Exit was called")
 	}
 
@@ -77,11 +76,11 @@ func Test_main_golden_show_version(t *testing.T) {
 
 	capturerdStatus := 1 // it shuld turn to 0 if "-v" is set
 
-	// Mock osExit
+	// Mock osExit to force panic instead of os.Exit
 	osExit = func(code int) {
 		capturerdStatus = code
 
-		panic("forced panic") // force panic instead of os.Exit
+		panic("forced panic")
 	}
 
 	out := capturer.CaptureOutput(func() {
@@ -113,9 +112,9 @@ func Test_main_golden_stdout(t *testing.T) {
 		listFiles[1], // target file2
 	}
 
-	// Mock osExit
-	osExit = func(code int) {
-		panic("os.Exit called") // force panic instead of os.Exit
+	// Mock osExit to force panic instead of os.Exit
+	osExit = func(_ int) {
+		panic("os.Exit called")
 	}
 
 	out := capturer.CaptureOutput(func() {
@@ -146,9 +145,9 @@ func Test_main_golden_search_dir(t *testing.T) {
 		"host*",     // search pattern (default is "hosts*")
 	}
 
-	// Mock osExit
-	osExit = func(code int) {
-		panic("os.Exit called") // force panic instead of os.Exit
+	// Mock osExit to force panic instead of os.Exit
+	osExit = func(_ int) {
+		panic("os.Exit called")
 	}
 
 	out := capturer.CaptureOutput(func() {
@@ -236,9 +235,9 @@ func Test_main_no_match_in_serch_dir(t *testing.T) {
 		pathDirFile, // search directory
 	}
 
-	// Mock osExit
-	osExit = func(code int) {
-		panic("os.Exit called") // force panic instead of os.Exit
+	// Mock osExit to force panic instead of os.Exit
+	osExit = func(_ int) {
+		panic("os.Exit called")
 	}
 
 	capturedOut := capturer.CaptureOutput(func() {
@@ -270,9 +269,9 @@ func Test_main_out_file_is_dir(t *testing.T) {
 		listFiles[1], // target file2
 	}
 
-	// Mock osExit
-	osExit = func(code int) {
-		panic("os.Exit called") // force panic instead of os.Exit
+	// Mock osExit to force panic instead of os.Exit
+	osExit = func(_ int) {
+		panic("os.Exit called")
 	}
 
 	capturedOut := capturer.CaptureOutput(func() {
@@ -350,8 +349,8 @@ func TestMergeFiles_fail_create_temp_file(t *testing.T) {
 	// Backup and defer restore os.Args and function variables
 	defer backupAndRestore(t)()
 
-	// Mock osCreateTemp
-	osCreateTemp = func(dir string, pattern string) (*os.File, error) {
+	// Mock osCreateTemp to override the temp file with a dummy file
+	osCreateTemp = func(_ string, _ string) (*os.File, error) {
 		return nil, errors.New("forced error")
 	}
 
@@ -372,8 +371,8 @@ func TestMergeFiles_fail_append_to_file(t *testing.T) {
 
 	defer tmpDirAsDummyFile.Close()
 
-	// Mock osCreateTemp
-	osCreateTemp = func(dir string, pattern string) (*os.File, error) {
+	// Mock osCreateTemp to override the temp file with a dummy file
+	osCreateTemp = func(_ string, _ string) (*os.File, error) {
 		return tmpDirAsDummyFile, nil
 	}
 

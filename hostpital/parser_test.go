@@ -190,7 +190,8 @@ func TestParser_scanFile(t *testing.T) {
 	parser := NewParser()
 	dummy := new(dummyReader)
 
-	dummy.dummyFn = func(p []byte) (int, error) {
+	// Assign a dummy function to the reader that always errors
+	dummy.dummyFn = func(_ []byte) (int, error) {
 		return 0, errors.New("forced error")
 	}
 

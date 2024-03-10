@@ -13,7 +13,7 @@ func TestFileExists_lstat_fail(t *testing.T) {
 	oldOsLstat := osLstat
 	defer func() { osLstat = oldOsLstat }()
 
-	osLstat = func(name string) (fs.FileInfo, error) {
+	osLstat = func(_ string) (fs.FileInfo, error) {
 		return nil, errors.New("forced error")
 	}
 
