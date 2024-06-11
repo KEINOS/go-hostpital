@@ -20,7 +20,7 @@ func TestPickRandom(t *testing.T) {
 	foundFirst := false
 	foundLast := false
 
-	for tryCount := 0; tryCount < tryMax; tryCount++ {
+	for range tryMax {
 		SleepRandom(1)
 
 		picked := PickRandom(items)

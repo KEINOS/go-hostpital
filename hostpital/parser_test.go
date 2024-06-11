@@ -101,6 +101,7 @@ func TestParser_ParseFileTo_outfile_is_dir(t *testing.T) {
 	pathDirTemp := t.TempDir()
 	pathFileTemp := filepath.Join(pathDirTemp, "hosts_to_sort")
 
+	//nolint:gosec // allow writing to temp dir due to testing
 	err := os.WriteFile(
 		pathFileTemp,
 		[]byte(heredoc.Doc(`

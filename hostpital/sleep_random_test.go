@@ -17,7 +17,7 @@ func TestSleepRandom(t *testing.T) {
 
 	hasDelay := false
 
-	for tryCount := 0; tryCount < tryMax; tryCount++ {
+	for range tryMax {
 		timeBefore := time.Now()
 
 		SleepRandom(secMax) // Sleep between 0 and 999 milliseconds

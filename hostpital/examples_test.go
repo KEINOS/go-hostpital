@@ -366,7 +366,7 @@ func ExamplePickRandom() {
 	picked1st := hostpital.PickRandom(items)
 
 	// Pick 10 times since the number of items is too few.
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		// Sleep for a random time from 0 to 999 milliseconds to avoid the same
 		// seed for the random number generator. The CI server is too fast.
 		hostpital.SleepRandom(1)
