@@ -1,7 +1,9 @@
 module github.com/KEINOS/go-hostpital
 
 // implicit function instantiation requireed
-go 1.18
+go 1.22
+
+toolchain go1.22.3
 
 require (
 	github.com/Code-Hex/dd v1.1.0

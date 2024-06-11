@@ -33,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Update go.mod and go.sum on Go 1.18 env
+      - name: Update go.mod and go.sum
         run: |
           set -eu
           docker-compose run tidy
