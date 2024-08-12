@@ -1,7 +1,7 @@
 # Unit testing on vaious Go versions, such as Go 1.18 and later.
 # It will test the generated password hash verifying with PHP and Python.
 #
-# This workflow caches images built with Docker and docker-compose to speed up its execution.
+# This workflow caches images built with Docker and docker compose to speed up its execution.
 name: UnitTests
 
 on:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create image tag from file hash
         uses: KEINOS/gh-action-hash-for-cache@main
@@ -37,7 +37,7 @@ jobs:
 
       - name: Enable Cache
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.PATH_CACHE }}
           key: ${{ steps.imagetag.outputs.hash }}
@@ -45,8 +45,8 @@ jobs:
       - name: Load cached Docker images if any
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital_min.tar
-          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital_latest_1.tar
+          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital-min.tar
+          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital-latest_1.tar
 
       - name: Pull base images if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
@@ -58,17 +58,17 @@ jobs:
       - name: Build Docker images if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          docker-compose build
+          docker compose build
 
       - name: Save/export built images to cache dir if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}
-          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital_min.tar go-hostpital_min:latest
-          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital_latest_1.tar go-hostpital_latest:latest
+          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital-min.tar go-hostpital-min:latest
+          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-hostpital-latest_1.tar go-hostpital-latest:latest
 
       - name: Run tests on minimum supported Go version
-        run: docker-compose run min
+        run: docker compose run min
 
       - name: Run tests on latest Go
-        run: docker-compose run latest
+        run: docker compose run latest
