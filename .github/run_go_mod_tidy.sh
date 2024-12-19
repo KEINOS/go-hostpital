@@ -12,7 +12,7 @@
 #    See "tidy" service: ./docker-compose.yml
 # =============================================================================
 
-min_go_version='1.22'
+min_go_version='1.22.0'
 
 set -eu
 
@@ -36,6 +36,13 @@ print_ok 'go.mod.bak and go.sum.bak created'
 
 # -----------------------------------------------------------------------------
 echo '* Run go tidy ...'
+
+go get -u ./... || {
+    echo 'ERROR: failed to run go get -u ./...'
+    echo '!!: Plese fallback to the original files'
+    exit 1
+}
+
 go mod tidy -go=${min_go_version}|| {
     echo 'error: failed to run go mod tidy'
     echo '!!: Plese fallback to the original files'
