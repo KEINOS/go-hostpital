@@ -15,7 +15,7 @@ import (
 func BenchmarkParser(b *testing.B) {
 	const wantIP = "0.0.0.0"
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		pathFile := filepath.Join("testdata", "hosts.txt")
 
 		// For the default settings, see the NewValidator() example.
@@ -32,7 +32,7 @@ func BenchmarkParser(b *testing.B) {
 }
 
 func BenchmarkReverseDNS(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = hostpital.ReverseDNS("www.example.com")
 	}
 }

@@ -1,9 +1,8 @@
 package hostpital
 
 import (
+	"slices"
 	"strings"
-
-	"golang.org/x/exp/slices"
 )
 
 // ReverseDNS converts the DNS labels in the reverse order.

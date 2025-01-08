@@ -5,12 +5,12 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/KEINOS/go-countline/cl"
 	"github.com/pkg/errors"
-	"golang.org/x/exp/slices"
 )
 
 // ----------------------------------------------------------------------------

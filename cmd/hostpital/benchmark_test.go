@@ -52,7 +52,7 @@ func Benchmark_trimExt1(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = trimExt1(fileName)
 	}
 }
@@ -64,7 +64,7 @@ func Benchmark_trimExt2(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = trimExt2(fileName)
 	}
 }
@@ -76,7 +76,7 @@ func Benchmark_trimExt3(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = trimExt3(fileName)
 	}
 }
