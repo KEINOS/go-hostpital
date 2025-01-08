@@ -26,14 +26,11 @@ linters:
   #- interfacer
   #- maligned
   #- structcheck
+  #- execinquery
+  #- gomnd
   #
   # Disable deprecated/abandoned linters
-  - execinquery
-  - gomnd
-  # Disabled because of generics
-  - rowserrcheck
-  - sqlclosecheck
-  - wastedassign
+  - exportloopref
   # Disable due to mock private functions
   - testpackage
   # Disable due to use of non-standard packages
