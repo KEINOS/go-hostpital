@@ -1,12 +1,10 @@
 <!-- markdownlint-disable MD001 MD041 MD050 MD033 -->
-[![go1.22+](https://img.shields.io/badge/Go-1.22--latest-blue?logo=go)](https://github.com/KEINOS/go-hostpital/blob/main/.github/workflows/unit-tests.yml "Supported versions")
+[![go1.24+](https://img.shields.io/badge/Go-1.24--latest-blue?logo=go)](https://github.com/KEINOS/go-hostpital/blob/main/.github/workflows/unit-tests.yml "Supported versions")
 [![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-hostpital.svg)](https://pkg.go.dev/github.com/KEINOS/go-hostpital/hostpital#section-documentation "Read generated documentation of the package")
 
 # go-hostpital
 
-- `hostpital` is a simple library written in `go` (golang) to maintain and manage `hosts` files.
-- `hostpital` es una sencilla librería escrita en `go` (golang) para mantener y gestionar archivos `hosts`.
-- `hostpital` は、`hosts` ファイルを維持・管理するための `go` (golang) で書かれたシンプルなライブラリです。
+A simple library written in `go` (golang) to maintain and manage `hosts` files.
 
 ## Usage
 
@@ -117,7 +115,7 @@ func Example() {
 
 ## Contributing
 
-[![go1.22+](https://img.shields.io/badge/Go-1.22--latest-blue?logo=go)](https://github.com/KEINOS/go-hostpital/blob/main/.github/workflows/unit-tests.yml "Supported versions")
+[![go1.24+](https://img.shields.io/badge/Go-1.24--latest-blue?logo=go)](https://github.com/KEINOS/go-hostpital/blob/main/.github/workflows/unit-tests.yml "Supported versions")
 [![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-hostpital.svg)](https://pkg.go.dev/github.com/KEINOS/go-hostpital#section-documentation "Read generated documentation of the app")
 
 - Branch to PR: `main`
