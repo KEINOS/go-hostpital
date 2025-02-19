@@ -553,8 +553,11 @@ func ExampleValidator() {
 	// Output:
 	// &hostpital.Validator{
 	//   mutx: sync.Mutex{
-	//     state: 0,
-	//     sema: 0,
+	//     _: sync.noCopy{},
+	//     mu: sync.Mutex{
+	//       state: 0,
+	//       sema: 0,
+	//     },
 	//   },
 	//   AllowComment: false,
 	//   AllowEmptyLine: true,
