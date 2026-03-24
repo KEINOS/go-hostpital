@@ -1,6 +1,5 @@
 module github.com/KEINOS/go-hostpital
 
-// implicit function instantiation requireed
 go 1.25.0
 
 require (
