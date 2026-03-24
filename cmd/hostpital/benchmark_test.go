@@ -35,11 +35,11 @@ func trimExt2(fileName string) string {
 }
 
 func trimExt3(fileName string) string {
-	const delimiter = '.'
+	const delimiter = "."
 
-	foundIndex := strings.IndexByte(fileName, delimiter)
-	if foundIndex != -1 {
-		return fileName[:foundIndex]
+	before, _, ok := strings.Cut(fileName, delimiter)
+	if ok {
+		return before
 	}
 
 	return fileName

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -52,55 +53,21 @@ func NewValidator() *Validator {
 //  Methods
 // ----------------------------------------------------------------------------
 
-// initialize sets the default values.
-func (v *Validator) initialize() {
-	// Set default values
-	v.IDNACompatible = true
-	v.AllowEmptyLine = true
-	v.isInitialized = true
-}
-
-// validateChunk returns nil if the given chunk/part of line is valid according
-// to the settings.
-//
-// This method validates RFC 6125 2.2 and IDNA2008 compatibility.
-func (v *Validator) validateChunk(chunk string) error {
-	if _, err := TransformToUnicode(chunk); err != nil && v.AllowHyphenDouble {
-		chunk = strings.ReplaceAll(chunk, "--", "aa")
-	}
-
-	if strings.Contains(chunk, ".-") && v.AllowHyphen {
-		chunk = strings.ReplaceAll(chunk, ".-", ".a")
-	}
-
-	// RFC 6125 2.2 compatible
-	if !v.IDNACompatible && !IsCompatibleRFC6125(chunk) {
-		return errors.Errorf("%#v is not RFC 6125 2.2 compatible", chunk)
-	}
-
-	// IDNA2008 compatible
-	if v.IDNACompatible && !IsCompatibleIDNA2008(chunk) {
-		if _, err := idna.Registration.ToASCII(chunk); err != nil {
-			msgErr := fmt.Sprintf("%#v is not IDNA2008 compatible", chunk)
-
-			return errors.Wrap(err, msgErr)
-		}
-	}
-
-	return nil
-}
-
 // ValidateFile returns true if the file is valid according to the settings.
 func (v *Validator) ValidateFile(pathFile string) bool {
 	v.mutx.Lock()
 	defer v.mutx.Unlock()
+
+	pathFile = filepath.Clean(pathFile)
 
 	osFile, err := os.Open(pathFile)
 	if err != nil {
 		return false
 	}
 
-	defer osFile.Close()
+	defer func() {
+		_ = osFile.Close()
+	}()
 
 	if !IsExistingFile(pathFile) {
 		return false
@@ -111,7 +78,8 @@ func (v *Validator) ValidateFile(pathFile string) bool {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if err := v.ValidateLine(line); err != nil {
+		err := v.ValidateLine(line)
+		if err != nil {
 			log.Println("invalid line:", line, err)
 
 			return false
@@ -121,31 +89,9 @@ func (v *Validator) ValidateFile(pathFile string) bool {
 	return true
 }
 
-func (v *Validator) trimLine(line string) (string, error) {
-	trimmed := strings.TrimLeft(line, " \t")
-
-	if !v.AllowIndent && trimmed != line {
-		return "", errors.New("indent is not allowed")
-	}
-
-	trimmed = strings.TrimRight(line, " \t")
-
-	if !v.AllowTrailingSpace && trimmed != line {
-		return "", errors.New("trailing space is not allowed")
-	}
-
-	trimmed = strings.TrimSpace(line)
-
-	if trimmed == "" {
-		if !v.AllowEmptyLine {
-			return "", errors.New("empty line is not allowed")
-		}
-	}
-
-	return trimmed, nil
-}
-
 // ValidateLine returns nil if the line is valid according to the settings.
+//
+//nolint:cyclop // cyclomatic complexity 12 is acceptable here
 func (v *Validator) ValidateLine(line string) error {
 	trimmed, err := v.trimLine(line)
 	if err != nil {
@@ -179,9 +125,74 @@ func (v *Validator) ValidateLine(line string) error {
 		trimmed = strings.ReplaceAll(trimmed, "_", "-")
 	}
 
-	for _, chunk := range strings.Split(TrimWordGaps(trimmed), " ") {
-		if err := v.validateChunk(chunk); err != nil {
+	for chunk := range strings.SplitSeq(TrimWordGaps(trimmed), " ") {
+		err := v.validateChunk(chunk)
+		if err != nil {
 			return errors.Wrap(err, "failed to validate chunk/part of line")
+		}
+	}
+
+	return nil
+}
+
+// initialize sets the default values.
+func (v *Validator) initialize() {
+	// Set default values
+	v.IDNACompatible = true
+	v.AllowEmptyLine = true
+	v.isInitialized = true
+}
+
+func (v *Validator) trimLine(line string) (string, error) {
+	trimmed := strings.TrimLeft(line, " \t")
+
+	if !v.AllowIndent && trimmed != line {
+		return "", errors.New("indent is not allowed")
+	}
+
+	trimmed = strings.TrimRight(line, " \t")
+
+	if !v.AllowTrailingSpace && trimmed != line {
+		return "", errors.New("trailing space is not allowed")
+	}
+
+	trimmed = strings.TrimSpace(line)
+
+	if trimmed == "" {
+		if !v.AllowEmptyLine {
+			return "", errors.New("empty line is not allowed")
+		}
+	}
+
+	return trimmed, nil
+}
+
+// validateChunk returns nil if the given chunk/part of line is valid according
+// to the settings.
+//
+// This method validates RFC 6125 2.2 and IDNA2008 compatibility.
+func (v *Validator) validateChunk(chunk string) error {
+	_, err := TransformToUnicode(chunk)
+	if err != nil && v.AllowHyphenDouble {
+		chunk = strings.ReplaceAll(chunk, "--", "aa")
+	}
+
+	if strings.Contains(chunk, ".-") && v.AllowHyphen {
+		chunk = strings.ReplaceAll(chunk, ".-", ".a")
+	}
+
+	// RFC 6125 2.2 compatible
+	if !v.IDNACompatible && !IsCompatibleRFC6125(chunk) {
+		return errors.Errorf("%#v is not RFC 6125 2.2 compatible", chunk)
+	}
+
+	// IDNA2008 compatible
+	if v.IDNACompatible && !IsCompatibleIDNA2008(chunk) {
+		_, err := idna.Registration.ToASCII(chunk)
+		if err != nil {
+			msgErr := fmt.Sprintf("%#v is not IDNA2008 compatible", chunk)
+
+			return errors.Wrap(err, msgErr)
 		}
 	}
 

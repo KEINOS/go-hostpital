@@ -107,7 +107,8 @@ func main() {
 		}
 
 		defer func() {
-			if err := outFile.Close(); err == nil {
+			err := outFile.Close()
+			if err == nil {
 				fmt.Println("Output file:", flags.PathOutput)
 			}
 		}()
@@ -123,12 +124,16 @@ func main() {
 func appendFileTo(inputFile string, outFile IOFile) error {
 	buf := make([]byte, bufio.MaxScanTokenSize)
 
+	inputFile = filepath.Clean(inputFile)
+
 	inFile, err := os.Open(inputFile)
 	if err != nil {
 		return errors.Wrap(err, "failed to open the file")
 	}
 
-	defer inFile.Close()
+	defer func() {
+		_ = inFile.Close()
+	}()
 
 	// We do not early return on error here to ease capture buffer write errors.
 	for {
@@ -185,7 +190,9 @@ func MergeFiles(paths []string) (string, func() error, error) {
 		return "", nil, errors.Wrap(err, "failed to create a temporary file")
 	}
 
-	defer outFile.Close()
+	defer func() {
+		_ = outFile.Close()
+	}()
 
 	pathFileTmp := outFile.Name()
 
@@ -218,9 +225,9 @@ func NameExec() string {
 	}
 
 	// trim "hostpital.test.exe" or "hostpital.test" to "hostpital"
-	foundIndex := strings.IndexByte(nameExec, delimiter)
-	if foundIndex != -1 {
-		return nameExec[:foundIndex]
+	before, _, ok := strings.Cut(nameExec, ".")
+	if ok {
+		return before
 	}
 
 	return nameExec
@@ -292,6 +299,18 @@ func ShowVerApp() {
 //  Methods
 // -----------------------------------------------------------------------------
 
+// ShowHelpAndExitIfTrue shows help and the msg to STDERR if isTrue is true.
+// Then exits with status 1.
+func (f *Flags) ShowHelpAndExitIfTrue(isTrue bool, msg string) {
+	if !isTrue {
+		return
+	}
+
+	f.showHelp(os.Stderr, msg)
+
+	osExit(1)
+}
+
 func (f *Flags) getExamples() string {
 	examples := heredoc.Doc(`
 		Examples:
@@ -327,9 +346,18 @@ func (f *Flags) grayOutComments(inText string) string {
 	grayOut := color.New(color.FgHiBlack).SprintFunc()
 	outText := ""
 
+	var outTextSb330 strings.Builder
+
+	var outTextSb332 strings.Builder
+
 	for _, line := range lines {
 		isComment := false
 		buf := ""
+
+		var (
+			bufSb334     strings.Builder
+			outTextSb334 strings.Builder
+		)
 
 		for _, char := range line {
 			if char == hostpital.DelimComnt {
@@ -337,14 +365,21 @@ func (f *Flags) grayOutComments(inText string) string {
 			}
 
 			if isComment {
-				buf += string(char)
+				bufSb334.WriteRune(char)
 			} else {
-				outText += string(char)
+				outTextSb334.WriteRune(char)
 			}
 		}
 
-		outText += grayOut(buf) + "\n"
+		buf += bufSb334.String()
+		outTextSb332.WriteString(outTextSb334.String())
+
+		outTextSb330.WriteString(grayOut(buf) + "\n")
 	}
+
+	outText += outTextSb332.String()
+
+	outText += outTextSb330.String()
 
 	return outText
 }
@@ -354,29 +389,18 @@ func (f *Flags) showHelp(output *os.File, msg string) {
 
 	f.FlagSet.SetOutput(output)
 
-	fmt.Fprintln(output, NameExec()+" - Merge multiple hosts file(s) into one but parse and sort them.")
-	fmt.Fprintln(output, "Usage:")
-	fmt.Fprintf(output, "  %s [options] <file path> [<file path(s)> ...]\n", NameExec())
-	fmt.Fprintf(output, "  %s [options] -d <directory path> [<search pattern>]\n", NameExec())
+	_, _ = fmt.Fprintln(output, NameExec()+" - Merge multiple hosts file(s) into one but parse and sort them.")
+	_, _ = fmt.Fprintln(output, "Usage:")
+	_, _ = fmt.Fprintf(output, "  %s [options] <file path> [<file path(s)> ...]\n", NameExec())
+	_, _ = fmt.Fprintf(output, "  %s [options] -d <directory path> [<search pattern>]\n", NameExec())
 
-	fmt.Fprintln(output, "Options:")
+	_, _ = fmt.Fprintln(output, "Options:")
+
 	f.FlagSet.PrintDefaults()
 
-	fmt.Fprintln(output, f.getExamples())
+	_, _ = fmt.Fprintln(output, f.getExamples())
 
 	if msg != "" {
-		fmt.Fprintln(output, "\n"+msg)
+		_, _ = fmt.Fprintln(output, "\n"+msg)
 	}
-}
-
-// ShowHelpAndExitIfTrue shows help and the msg to STDERR if isTrue is true.
-// Then exits with status 1.
-func (f *Flags) ShowHelpAndExitIfTrue(isTrue bool, msg string) {
-	if !isTrue {
-		return
-	}
-
-	f.showHelp(os.Stderr, msg)
-
-	osExit(1)
 }

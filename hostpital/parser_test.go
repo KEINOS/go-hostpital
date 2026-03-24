@@ -100,6 +100,7 @@ func TestParser_ParseFileTo_outfile_is_dir(t *testing.T) {
 
 	pathDirTemp := t.TempDir()
 	pathFileTemp := filepath.Join(pathDirTemp, "hosts_to_sort")
+	pathDirTemp = filepath.Clean(pathDirTemp)
 
 	//nolint:gosec // allow writing to temp dir due to testing
 	err := os.WriteFile(
@@ -118,10 +119,13 @@ func TestParser_ParseFileTo_outfile_is_dir(t *testing.T) {
 	// Set property to sort after parsing
 	parser.SortAfterParse = true
 
+	//nolint:gosec // allow writing to temp dir due to testing
 	pt, err := os.OpenFile(pathDirTemp, os.O_RDONLY, os.ModePerm)
 	require.NoError(t, err, "failed to open temp dir for testing")
 
-	defer pt.Close()
+	t.Cleanup(func() {
+		require.NoError(t, pt.Close())
+	})
 
 	err = parser.ParseFileTo(pathFileTemp, pt)
 

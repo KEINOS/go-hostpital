@@ -87,6 +87,7 @@ func isValidHostname(host string, isPattern bool) bool {
 	return true
 }
 
+//nolint:cyclop // cyclomatic complexity 11 is acceptable here
 func isValidLabel(label string) bool {
 	for pos, char := range label {
 		if 'a' <= char && char <= 'z' {

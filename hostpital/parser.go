@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -61,12 +62,16 @@ func (p *Parser) CountLines(pathFile string) (int, error) {
 	p.mutx.Lock()
 	defer p.mutx.Unlock()
 
+	pathFile = filepath.Clean(pathFile)
+
 	osFile, err := os.Open(pathFile)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to open the file")
 	}
 
-	defer osFile.Close()
+	defer func() {
+		_ = osFile.Close()
+	}()
 
 	numLines, err := cl.CountLines(osFile)
 
@@ -78,7 +83,8 @@ func (p *Parser) CountLines(pathFile string) (int, error) {
 func (p *Parser) ParseFile(pathFile string) (string, error) {
 	outBuf := new(bytes.Buffer)
 
-	if err := p.ParseFileTo(pathFile, outBuf); err != nil {
+	err := p.ParseFileTo(pathFile, outBuf)
+	if err != nil {
 		return "", errors.Wrap(err, "failed to parse the file")
 	}
 
@@ -90,6 +96,8 @@ func (p *Parser) ParseFileTo(pathFileIn string, fileOut io.Writer) error {
 	if fileOut == nil {
 		return errors.New("the given io.Writer is nil")
 	}
+
+	pathFileIn = filepath.Clean(pathFileIn)
 
 	// Prepare a slice to store the parsed lines.
 	numLines, err := p.CountLines(pathFileIn)
@@ -103,7 +111,10 @@ func (p *Parser) ParseFileTo(pathFileIn string, fileOut io.Writer) error {
 	// Error check is omitted because it is done in the above p.CountLines() so
 	// it will never reach here if the file does not exist or is not readable.
 	osFile, _ := osOpen(pathFileIn)
-	defer osFile.Close()
+
+	defer func() {
+		_ = osFile.Close()
+	}()
 
 	// Returned error not checked as it is done in the above p.CountLines().
 	_ = p.scanFile(osFile, lines)
@@ -113,7 +124,8 @@ func (p *Parser) ParseFileTo(pathFileIn string, fileOut io.Writer) error {
 	}
 
 	for _, line := range lines {
-		if _, err = fileOut.Write([]byte(line)); err != nil {
+		_, err = fileOut.Write([]byte(line))
+		if err != nil {
 			return errors.Wrap(err, "failed to write to io.Writer")
 		}
 	}

@@ -1,9 +1,8 @@
-// ============================================================================
-//
-//	Examples for hostpital package
-//
-// ============================================================================
 package hostpital_test
+
+// ============================================================================
+//	Examples for hostpital package
+// ============================================================================
 
 import (
 	"bytes"
@@ -308,7 +307,8 @@ func ExampleParser_ParseFileTo() {
 	var buf bytes.Buffer
 
 	// Execute ParseFileTo
-	if err := parser.ParseFileTo(pathFile, &buf); err != nil {
+	err := parser.ParseFileTo(pathFile, &buf)
+	if err != nil {
 		log.Fatal(err)
 	}
 

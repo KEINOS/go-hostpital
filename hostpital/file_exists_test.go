@@ -11,6 +11,7 @@ import (
 //nolint:paralleltest // do not parallelize due to temporary changing global variables
 func TestFileExists_lstat_fail(t *testing.T) {
 	oldOsLstat := osLstat
+
 	defer func() { osLstat = oldOsLstat }()
 
 	osLstat = func(_ string) (fs.FileInfo, error) {

@@ -61,5 +61,5 @@ func TestTrimComment_contains_line_break(t *testing.T) {
 
 	require.Error(t, err, "if the given line contains a line break, it should error")
 	require.Contains(t, err.Error(), "line break found", "error shuld contain the reason")
-	require.Equal(t, "", result, "returned value should be empty on error")
+	require.Empty(t, result, "returned value should be empty on error")
 }

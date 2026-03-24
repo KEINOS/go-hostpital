@@ -22,6 +22,7 @@ func Test_main_golden_file_out(t *testing.T) {
 	defer backupAndRestore(t)()
 
 	pathFileOut := filepath.Join(t.TempDir(), "out.txt")
+	pathFileOut = filepath.Clean(pathFileOut)
 
 	const pathDirFile = "testdata"
 
@@ -332,6 +333,7 @@ func TestMergeFiles_golden(t *testing.T) {
 	require.FileExists(t, pathTmp, "it should create a temporary file")
 
 	// Read the file
+	pathTmp = filepath.Clean(pathTmp)
 	content, err := os.ReadFile(pathTmp)
 	require.NoError(t, err, "it should read the file")
 
@@ -369,7 +371,9 @@ func TestMergeFiles_fail_append_to_file(t *testing.T) {
 	tmpDirAsDummyFile, err := os.Open(t.TempDir())
 	require.NoError(t, err, "it should open a dummy file")
 
-	defer tmpDirAsDummyFile.Close()
+	t.Cleanup(func() {
+		require.NoError(t, tmpDirAsDummyFile.Close())
+	})
 
 	// Mock osCreateTemp to override the temp file with a dummy file
 	osCreateTemp = func(_ string, _ string) (*os.File, error) {
