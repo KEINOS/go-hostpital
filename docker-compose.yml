@@ -57,7 +57,7 @@ services:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.24-alpine
+        VARIANT: 1.25-alpine
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
