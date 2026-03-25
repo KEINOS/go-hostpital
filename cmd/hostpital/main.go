@@ -124,7 +124,10 @@ func main() {
 func appendFileTo(inputFile string, outFile IOFile) error {
 	buf := make([]byte, bufio.MaxScanTokenSize)
 
-	inputFile = filepath.Clean(inputFile)
+	// Do not clean empty paths to preserve error message "no such file or directory"
+	if inputFile != "" {
+		inputFile = filepath.Clean(inputFile)
+	}
 
 	inFile, err := os.Open(inputFile)
 	if err != nil {

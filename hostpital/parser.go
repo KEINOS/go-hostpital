@@ -62,7 +62,10 @@ func (p *Parser) CountLines(pathFile string) (int, error) {
 	p.mutx.Lock()
 	defer p.mutx.Unlock()
 
-	pathFile = filepath.Clean(pathFile)
+	// Do not clean empty paths to preserve error message "no such file or directory"
+	if pathFile != "" {
+		pathFile = filepath.Clean(pathFile)
+	}
 
 	osFile, err := os.Open(pathFile)
 	if err != nil {

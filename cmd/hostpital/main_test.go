@@ -371,10 +371,6 @@ func TestMergeFiles_fail_append_to_file(t *testing.T) {
 	tmpDirAsDummyFile, err := os.Open(t.TempDir())
 	require.NoError(t, err, "it should open a dummy file")
 
-	t.Cleanup(func() {
-		require.NoError(t, tmpDirAsDummyFile.Close())
-	})
-
 	// Mock osCreateTemp to override the temp file with a dummy file
 	osCreateTemp = func(_ string, _ string) (*os.File, error) {
 		return tmpDirAsDummyFile, nil
