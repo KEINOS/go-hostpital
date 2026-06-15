@@ -86,6 +86,13 @@ func (v *Validator) ValidateFile(pathFile string) bool {
 		}
 	}
 
+	err = scanner.Err()
+	if err != nil {
+		log.Println("failed to scan file:", err)
+
+		return false
+	}
+
 	return true
 }
 

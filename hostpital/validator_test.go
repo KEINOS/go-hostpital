@@ -1,7 +1,9 @@
 package hostpital
 
 import (
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,6 +49,21 @@ func TestValidator_ValidateFile_malformed_file(t *testing.T) {
 
 	require.False(t, ok,
 		"it should return false if the file is malformed according to the configuration")
+}
+
+func TestValidator_ValidateFile_scanner_error(t *testing.T) {
+	t.Parallel()
+
+	validator := NewValidator()
+	pathDir := t.TempDir()
+	pathFile := filepath.Join(pathDir, "too_long.txt")
+
+	err := os.WriteFile(pathFile, []byte(strings.Repeat("a", 70*1024)), 0o600)
+	require.NoError(t, err)
+
+	ok := validator.ValidateFile(pathFile)
+
+	require.False(t, ok, "it should return false if scanner reports an error")
 }
 
 // ----------------------------------------------------------------------------
