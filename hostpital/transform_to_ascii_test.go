@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	hostASCIIExampleCom = "example.com"
+	hostASCIIAnyIPv4    = "0.0.0.0"
+	hostASCIIPunycode   = "www.xn--gpher-jua.com"
+)
+
 func TestTransformToASCII(t *testing.T) {
 	t.Parallel()
 
@@ -15,9 +21,9 @@ func TestTransformToASCII(t *testing.T) {
 		wantOut string
 		wantErr bool
 	}{
-		{"example.com", "example.com", false},
-		{"0.0.0.0", "0.0.0.0", false},
-		{"www.xn--gpher-jua.com", "www.xn--gpher-jua.com", false},
+		{hostASCIIExampleCom, hostASCIIExampleCom, false},
+		{hostASCIIAnyIPv4, hostASCIIAnyIPv4, false},
+		{hostASCIIPunycode, hostASCIIPunycode, false},
 		{"www.GÖPHER.com", "www.xn--gpher-jua.com", false},
 		// Example of confusing characters.
 		// U+0430 "а" --> U+0061 "a"

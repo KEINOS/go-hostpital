@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	ipAnyV4       = "0.0.0.0"
+	ipLoopbackV4  = "127.0.0.1"
+	hostExampleV4 = "example.com"
+)
+
 func TestIsIPAddress(t *testing.T) {
 	t.Parallel()
 
@@ -15,10 +21,10 @@ func TestIsIPAddress(t *testing.T) {
 		expect bool
 	}{
 		// Golden cases
-		{"0.0.0.0", true}, // undefined address
+		{ipAnyV4, true}, // undefined address
 		{"0:0:0:0:0:0:0:0", true},
 		{"::", true},
-		{"127.0.0.1", true}, // localhost, loopback
+		{ipLoopbackV4, true}, // localhost, loopback
 		{"0:0:0:0:0:0:0:1", true},
 		{"::1", true},
 		{"fe00::0", true},          // ip6-localnet
@@ -35,7 +41,7 @@ func TestIsIPAddress(t *testing.T) {
 		{"::ffff:192.0.2.1", true},
 		// Wrong cases
 		{"0.0.0.0 ", false}, // contains white space
-		{"example.com", false},
+		{hostExampleV4, false},
 		{"192.168.0.1.com", false},
 		{"192.168.0.0.1", false},
 		{"192.168.0.1/24", false}, // contains subnet

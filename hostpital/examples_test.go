@@ -15,6 +15,14 @@ import (
 	"github.com/KEINOS/go-hostpital/hostpital"
 )
 
+const (
+	hostExampleCom           = "example.com"
+	hostLeadingDotExampleCom = ".example.com"
+	hostLocalhostIPv4        = "127.0.0.1"
+	hostAnyIPv4              = "0.0.0.0"
+	hostWWWExampleCom        = "www.example.com"
+)
+
 // ----------------------------------------------------------------------------
 //  FileExists()
 // ----------------------------------------------------------------------------
@@ -96,8 +104,8 @@ func ExampleIsCompatibleIDNA2008() {
 		want  bool
 	}{
 		// Golden cases
-		{input: "example.com", want: true},
-		{input: "0.0.0.0", want: true},
+		{input: hostExampleCom, want: true},
+		{input: hostAnyIPv4, want: true},
 		{input: "xn--fa-hia.com", want: true},    // IDNA2008 compatible and is ASCII/punycoded
 		{input: "xn--gpher-jua.com", want: true}, // same as above
 		// Wrong cases
@@ -106,7 +114,7 @@ func ExampleIsCompatibleIDNA2008() {
 		{input: "faß.com", want: false},                        // Must be in punycode/ASCII. Use TransformToASCII()
 		{input: "www.аррӏе.com", want: false},                  // Same as above
 		{input: "*.faß.com", want: false},                      // Wildcard is not allowed. Use IsCompatibleRFC6125Pattern()
-		{input: ".example.com", want: false},                   // Must not start with a dot
+		{input: hostLeadingDotExampleCom, want: false},          // Must not start with a dot
 	} {
 		// True if host name is ready for registration. False if it is a raw
 		// punycode or not IDNA2008 compatible.
@@ -142,11 +150,11 @@ func ExampleIsCompatibleRFC6125() {
 		want bool
 	}{
 		// Golden cases
-		{host: "example.com", want: true},
+		{host: hostExampleCom, want: true},
 		{host: "eXample123-.com", want: true},
 		{host: "example.com.", want: true},
 		{host: "exa_mple.com", want: true},
-		{host: "127.0.0.1", want: true},
+		{host: hostLocalhostIPv4, want: true},
 		// Wrong cases
 		{host: "0.0.0.0 example.com", want: false}, // no space allowed
 		{host: "-eXample123-.com", want: false},
@@ -178,10 +186,10 @@ func ExampleIsCompatibleRFC6125Pattern() {
 		want bool
 	}{
 		// Golden cases
-		{host: "example.com", want: true},
+		{host: hostExampleCom, want: true},
 		{host: "eXample123-.com", want: true},
 		{host: "exa_mple.com", want: true},
-		{host: "127.0.0.1", want: true},
+		{host: hostLocalhostIPv4, want: true},
 		{host: "*.example.com", want: true}, // wildcard is allowed
 		// Wrong cases
 		{host: "0.0.0.0 example.com", want: false}, // no space allowed
@@ -246,7 +254,7 @@ func ExampleIsIPAddress() {
 		want  bool
 	}{
 		// Golden cases
-		{input: "0.0.0.0", want: true},
+		{input: hostAnyIPv4, want: true},
 		{input: "::", want: true},
 		// Wrong cases
 		{input: "0.0.0.0.0", want: false},
@@ -450,10 +458,10 @@ func ExampleTrimDNSByLevel() {
 		want  string
 		level int
 	}{
-		{host: "www.example.com", level: 0, want: "com"},
-		{host: "www.example.com", level: 1, want: "example.com"},
-		{host: "www.example.com", level: 2, want: "www.example.com"},
-		{host: "www.example.com", level: 5, want: "www.example.com"},
+		{host: hostWWWExampleCom, level: 0, want: "com"},
+		{host: hostWWWExampleCom, level: 1, want: hostExampleCom},
+		{host: hostWWWExampleCom, level: 2, want: hostWWWExampleCom},
+		{host: hostWWWExampleCom, level: 5, want: hostWWWExampleCom},
 	} {
 		got := hostpital.TrimDNSByLevel(test.host, test.level)
 		if got != test.want {
@@ -482,12 +490,12 @@ func ExampleTrimIPAdd() {
 		{"", ""},
 		{" ", ""},
 		{"123.123.123.123", ""},
-		{"example.com", "example.com"},
-		{"\texample.com", "example.com"},
-		{"      example.com", "example.com"},
-		{"123.123.123.123 example.com ", "example.com"},
-		{"123.123.123.123       example.com ", "example.com"},
-		{"123.123.123.123\texample.com ", "example.com"},
+		{hostExampleCom, hostExampleCom},
+		{"\t" + hostExampleCom, hostExampleCom},
+		{"      " + hostExampleCom, hostExampleCom},
+		{"123.123.123.123 " + hostExampleCom + " ", hostExampleCom},
+		{"123.123.123.123       " + hostExampleCom + " ", hostExampleCom},
+		{"123.123.123.123\t" + hostExampleCom + " ", hostExampleCom},
 		{
 			"123.123.123.123    0.0.0.0    sub1.example.com    sub2.example.com",
 			"sub1.example.com sub2.example.com",

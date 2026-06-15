@@ -216,12 +216,18 @@ func TestParser_scanFile(t *testing.T) {
 func TestParser_sortAsReverseDNS(t *testing.T) {
 	t.Parallel()
 
+	const (
+		hostOneExampleCoJP   = "one.example.co.jp"
+		hostTwoExampleJP     = "two.example.jp"
+		hostThreeExampleCom  = "three.example.com"
+	)
+
 	parser := NewParser()
 
 	lines := []string{
-		"one.example.co.jp",
-		"three.example.com",
-		"two.example.jp",
+		hostOneExampleCoJP,
+		hostThreeExampleCom,
+		hostTwoExampleJP,
 	}
 
 	// Regulat settings (no sorting)
@@ -229,9 +235,9 @@ func TestParser_sortAsReverseDNS(t *testing.T) {
 		parser.SortAsReverseDNS = false
 
 		expect := []string{
-			"one.example.co.jp",
-			"three.example.com",
-			"two.example.jp",
+			hostOneExampleCoJP,
+			hostThreeExampleCom,
+			hostTwoExampleJP,
 		}
 
 		actual := parser.sortAsReverseDNS(lines)
@@ -245,9 +251,9 @@ func TestParser_sortAsReverseDNS(t *testing.T) {
 		parser.SortAsReverseDNS = true
 
 		expect := []string{
-			"three.example.com",
-			"one.example.co.jp",
-			"two.example.jp",
+			hostThreeExampleCom,
+			hostOneExampleCoJP,
+			hostTwoExampleJP,
 		}
 
 		actual := parser.sortAsReverseDNS(lines)
@@ -264,12 +270,18 @@ func TestParser_sortAsReverseDNS(t *testing.T) {
 func TestParser_sortSlices(t *testing.T) {
 	t.Parallel()
 
+	const (
+		hostNumOneExampleCom  = "1.example.com"
+		hostNumTwoExampleJP   = "2.example.jp"
+		hostNumThreeExampleCo = "3.example.co.jp"
+	)
+
 	parser := NewParser()
 
 	lines := []string{
-		"3.example.co.jp",
-		"2.example.jp",
-		"1.example.com",
+		hostNumThreeExampleCo,
+		hostNumTwoExampleJP,
+		hostNumOneExampleCom,
 	}
 
 	// Regulat settings (no sorting)
@@ -277,9 +289,9 @@ func TestParser_sortSlices(t *testing.T) {
 		parser.SortAsReverseDNS = false
 
 		expect := []string{
-			"1.example.com",
-			"2.example.jp",
-			"3.example.co.jp",
+			hostNumOneExampleCom,
+			hostNumTwoExampleJP,
+			hostNumThreeExampleCo,
 		}
 
 		actual := parser.sortSlices(lines)
@@ -293,9 +305,9 @@ func TestParser_sortSlices(t *testing.T) {
 		parser.SortAsReverseDNS = true
 
 		expect := []string{
-			"1.example.com",
-			"3.example.co.jp",
-			"2.example.jp",
+			hostNumOneExampleCom,
+			hostNumThreeExampleCo,
+			hostNumTwoExampleJP,
 		}
 
 		actual := parser.sortSlices(lines)

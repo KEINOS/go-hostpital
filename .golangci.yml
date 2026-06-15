@@ -6,6 +6,9 @@ linters:
       ignore-names:
           - pt
   disable:
-    - wsl
+    # Disable by project
     - testpackage
     - depguard
+    # Deprecated
+    - wsl
+    - gomodguard

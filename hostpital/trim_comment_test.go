@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const hostTrimCommentExampleCom = "example.com"
+
 func TestTrimComment(t *testing.T) {
 	t.Parallel()
 
@@ -22,28 +24,28 @@ func TestTrimComment(t *testing.T) {
 		},
 		{
 			name:  "no comment",
-			input: "example.com",
-			want:  "example.com",
+			input: hostTrimCommentExampleCom,
+			want:  hostTrimCommentExampleCom,
 		},
 		{
 			name:  "comment",
-			input: "example.com#comment",
-			want:  "example.com",
+			input: hostTrimCommentExampleCom + "#comment",
+			want:  hostTrimCommentExampleCom,
 		},
 		{
 			name:  "comment with space",
-			input: "example.com #comment",
-			want:  "example.com",
+			input: hostTrimCommentExampleCom + " #comment",
+			want:  hostTrimCommentExampleCom,
 		},
 		{
 			name:  "comment with space and tab",
-			input: "example.com \t#comment",
-			want:  "example.com",
+			input: hostTrimCommentExampleCom + " \t#comment",
+			want:  hostTrimCommentExampleCom,
 		},
 		{
 			name:  "indented line with comment",
-			input: "    example.com \t#comment",
-			want:  "    example.com",
+			input: "    " + hostTrimCommentExampleCom + " \t#comment",
+			want:  "    " + hostTrimCommentExampleCom,
 		},
 	} {
 		expect := test.want
@@ -57,7 +59,7 @@ func TestTrimComment(t *testing.T) {
 func TestTrimComment_contains_line_break(t *testing.T) {
 	t.Parallel()
 
-	result, err := hostpital.TrimComment("example.com\n")
+	result, err := hostpital.TrimComment(hostTrimCommentExampleCom + "\n")
 
 	require.Error(t, err, "if the given line contains a line break, it should error")
 	require.Contains(t, err.Error(), "line break found", "error shuld contain the reason")
