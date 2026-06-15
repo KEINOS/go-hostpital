@@ -1,32 +1,26 @@
 # This workflow updates the code coverage of Codecov.
 # It runs the unit test and pushes the measured code coverage analysis.
 name: "Codecov"
-
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - name: Run coverage on docker
         run: docker compose build cover && docker compose run cover
-
       - uses: actions/setup-go@v6
         with:
           go-version: '1.x'
           check-latest: true
-
       - name: Run coverage
         run: go test -coverprofile=coverage.out -covermode=atomic ./...
-
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
