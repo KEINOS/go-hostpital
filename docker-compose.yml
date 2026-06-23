@@ -28,7 +28,7 @@ services:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.25-alpine
+        VARIANT: 1.26-alpine
     volumes:
       - .:/workspaces
     entrypoint: [ "./.github/run_go_mod_tidy.sh" ]
@@ -57,7 +57,7 @@ services:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.25-alpine
+        VARIANT: 1.26-alpine
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod

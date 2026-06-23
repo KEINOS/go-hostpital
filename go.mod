@@ -1,6 +1,6 @@
 module github.com/KEINOS/go-hostpital
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/Code-Hex/dd v1.1.0

@@ -12,7 +12,7 @@
 #    See "tidy" service: ./docker-compose.yml
 # =============================================================================
 
-min_go_version='1.25.0'
+min_go_version='1.26.0'
 
 set -eu
 

@@ -45,7 +45,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           : # Pull images one-by-one for stability
-          docker pull golang:1.22-alpine
+          docker pull golang:1.26-alpine
           docker pull golang:alpine
       - name: Build Docker images if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
