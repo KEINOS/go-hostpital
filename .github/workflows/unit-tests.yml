@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Create image tag from file hash
         uses: KEINOS/gh-action-hash-for-cache@v1.3.0
         id: imagetag

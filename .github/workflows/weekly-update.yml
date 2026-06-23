@@ -27,7 +27,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Update go.mod and go.sum
         run: |
           set -eu
