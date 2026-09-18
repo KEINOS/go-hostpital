@@ -12,3 +12,4 @@ linters:
     # Deprecated
     - wsl
     - gomodguard
+    - exhaustruct

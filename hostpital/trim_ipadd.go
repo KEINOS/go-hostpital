@@ -9,7 +9,7 @@ import "strings"
 func TrimIPAdd(line string) string {
 	line = TrimWordGaps(line)
 
-	ipAdd := strings.Split(line, " ")[0]
+	ipAdd, _, _ := strings.Cut(line, " ")
 	if IsIPAddress(ipAdd) {
 		trimmed := strings.TrimLeft(strings.TrimLeft(line, ipAdd), Cutset)
 
